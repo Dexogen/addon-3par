@@ -48,10 +48,14 @@ unset i XPATH_ELEMENTS
 
 while IFS= read -r -d '' element; do
     XPATH_ELEMENTS[i++]="$element"
-done < <($XPATH     /DS_DRIVER_ACTION_DATA/DATASTORE/TEMPLATE/CPG)
+done < <($XPATH     /DS_DRIVER_ACTION_DATA/DATASTORE/TEMPLATE/IP \
+                    /DS_DRIVER_ACTION_DATA/DATASTORE/TEMPLATE/CPG)
 
-CPG="${XPATH_ELEMENTS[0]:-$CPG}"
+unset i
 
+IP="${XPATH_ELEMENTS[i++]:-$IP}"
+API_ENDPOINT="http://${IP}:8008/api/v1"
+CPG="${XPATH_ELEMENTS[i++]:-$CPG}"
 # ------------ Compute datastore usage -------------
 
 python ${DRIVER_PATH}/3par.py monitorCPG -a $API_ENDPOINT -i $IP -s $SECURE -u $USERNAME -p $PASSWORD -c $CPG

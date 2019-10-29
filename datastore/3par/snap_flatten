@@ -49,12 +49,15 @@ unset i XPATH_ELEMENTS
 while IFS= read -r -d '' element; do
     XPATH_ELEMENTS[i++]="$element"
 done < <($XPATH     /DS_DRIVER_ACTION_DATA/IMAGE/TARGET_SNAPSHOT \
-                    /DS_DRIVER_ACTION_DATA/IMAGE/SOURCE)
+                    /DS_DRIVER_ACTION_DATA/IMAGE/SOURCE \
+                    /DS_DRIVER_ACTION_DATA/DATASTORE/TEMPLATE/IP)
 
 unset i
 
 SNAP_ID="${XPATH_ELEMENTS[i++]}"
 SOURCE="${XPATH_ELEMENTS[i++]}"
+IP="${XPATH_ELEMENTS[i++]:-$IP}"
+API_ENDPOINT="http://${IP}:8008/api/v1"
 
 NAME=$(get_vv_name "$SOURCE")
 

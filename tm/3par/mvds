@@ -20,7 +20,7 @@
 # -------------------------------------------------------------------------- #
 
 ###############################################################################
-# This script is used to move an image back to its datastore (persistent images) 
+# This script is used to move an image back to its datastore (persistent images)
 ###############################################################################
 
 # mvds host:remote_system_ds/disk.i fe:SOURCE vmid dsid
@@ -60,6 +60,16 @@ SRC_HOST="$(arg_host $SRC)"
 NAME=$(get_vv_name "$DST")
 WWN=$(get_vv_wwn "$DST")
 
+XPATH="${DRIVER_PATH}/../../datastore/xpath.rb --stdin"
+
+unset i XPATH_ELEMENTS
+
+while IFS= read -r -d '' element; do
+    XPATH_ELEMENTS[i++]="$element"
+done < <(onedatastore show -x $DSID| $XPATH /DATASTORE/TEMPLATE/IP)
+IP="${XPATH_ELEMENTS[0]}"
+API_ENDPOINT="http://${IP}:8008/api/v1"
+
 SRC_HOST_3PAR=$(python ${DRIVER_PATH}/../../datastore/3par/3par.py hostExists -a $API_ENDPOINT -i $IP -s $SECURE -u $USERNAME \
                                                                         -p $PASSWORD -hs $SRC_HOST)
 
@@ -83,9 +93,12 @@ unset i j XPATH_ELEMENTS
 while IFS= read -r -d '' element; do
     XPATH_ELEMENTS[i++]="$element"
 done < <(onedatastore show -x $DSID | $XPATH \
+                        /DATASTORE/TEMPLATE/IP \
                         /DATASTORE/TEMPLATE/NAMING_TYPE \
                         /DATASTORE/TEMPLATE/QOS_ENABLE)
 
+IP="${XPATH_ELEMENTS[j++]:-$IP}"
+API_ENDPOINT="http://${IP}:8008/api/v1"
 NAMING_TYPE="${XPATH_ELEMENTS[j++]:-$NAMING_TYPE}"
 QOS_ENABLE="${XPATH_ELEMENTS[j++]:-$QOS_ENABLE}"
 

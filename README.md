@@ -18,6 +18,7 @@ More info:
 ## Authors
 
 * Leader: Kristian Feldsam (feldsam@feldhost.net)
+* Contributors: Dexogen (dexogen@gmail.com)
 
 ## Support
 
@@ -208,7 +209,7 @@ The system datastore will hold only the symbolic links to the 3PAR block devices
 ### Configuring the Datastore
 
 Some configuration attributes must be set to enable a datastore as 3PAR enabled one:
-
+* **IP**: [mandatory] The storage IP address. Based on it, the API address is generated. String, use value `xxx.xxx.xxx.xxx`
 * **DS_MAD**: [mandatory] The DS driver for the datastore. String, use value `3par`
 * **TM_MAD**: [mandatory] Transfer driver for the datastore. String, use value `3par`
 * **DISK_TYPE**: [mandatory for IMAGE datastores] Type for the VM disks using images from this datastore. String, use value `block`
@@ -229,7 +230,7 @@ Some configuration attributes must be set to enable a datastore as 3PAR enabled 
 1. Volume names are created according to best practices naming conventions.
    `<TYPE>` part - can be prd for production servers, dev for development servers, tst for test servers, etc.
    Volume name will be `<TYPE>.one.<IMAGE_ID>.vv` for ex. `dev.one.1.vv` or `tst.one.3.vv`
-   
+
 2. Quoted, space separated list of server hostnames which are Hosts on the 3PAR System.
 
 3. QoS Rules - Applied per VM, so if VM have multiple disks, them QoS policy applies to all VM disks
@@ -275,6 +276,7 @@ The datastore will use hosts `tst.lin.fedora1.host`, `tst.lin.fedora2.host` and 
 ```bash
 # create datastore configuration file
 $ cat >/tmp/imageds.tmpl <<EOF
+IP = "10.0.0.2"
 NAME = "3PAR IMAGE"
 DS_MAD = "3par"
 TM_MAD = "3par"
@@ -304,6 +306,7 @@ $ onedatastore list
 ```bash
 # create datastore configuration file
 $ cat >/tmp/ds.conf <<EOF
+IP = "10.0.0.2"
 NAME = "3PAR SYSTEM"
 TM_MAD = "3par"
 TYPE = "SYSTEM_DS"

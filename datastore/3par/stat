@@ -44,13 +44,16 @@ while IFS= read -r -d '' element; do
     XPATH_ELEMENTS[i++]="$element"
 done < <($XPATH /DS_DRIVER_ACTION_DATA/IMAGE/PATH \
                 /DS_DRIVER_ACTION_DATA/DATASTORE/TEMPLATE/NO_DECOMPRESS \
-                /DS_DRIVER_ACTION_DATA/DATASTORE/TEMPLATE/LIMIT_TRANSFER_BW)
+                /DS_DRIVER_ACTION_DATA/DATASTORE/TEMPLATE/LIMIT_TRANSFER_BW \
+                /DS_DRIVER_ACTION_DATA/DATASTORE/TEMPLATE/IP)
 
 unset i
 
 SRC="${XPATH_ELEMENTS[i++]}"
 NO_DECOMPRESS="${XPATH_ELEMENTS[i++]}"
 LIMIT_TRANSFER_BW="${XPATH_ELEMENTS[i++]}"
+IP="${XPATH_ELEMENTS[i++]:-$IP}"
+API_ENDPOINT="http://${IP}:8008/api/v1"
 
 # ------------------------------------------------------------------------------
 #  Compute the size

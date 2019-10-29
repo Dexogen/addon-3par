@@ -49,11 +49,14 @@ unset i XPATH_ELEMENTS
 while IFS= read -r -d '' element; do
     XPATH_ELEMENTS[i++]="$element"
 done < <($XPATH     /DS_DRIVER_ACTION_DATA/IMAGE/TARGET_SNAPSHOT \
+                    /DS_DRIVER_ACTION_DATA/DATASTORE/TEMPLATE/IP \
                     /DS_DRIVER_ACTION_DATA/DATASTORE/TEMPLATE/NAMING_TYPE)
 
 unset i
 
 SNAP_ID="${XPATH_ELEMENTS[i++]}"
+IP="${XPATH_ELEMENTS[i++]:-$IP}"
+API_ENDPOINT="http://${IP}:8008/api/v1"
 NAMING_TYPE="${XPATH_ELEMENTS[i++]:-$NAMING_TYPE}"
 
 python ${DRIVER_PATH}/3par.py revertSnapshot -a $API_ENDPOINT -i $IP -s $SECURE -u $USERNAME -p $PASSWORD -nt $NAMING_TYPE \

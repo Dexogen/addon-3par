@@ -48,15 +48,18 @@ unset i XPATH_ELEMENTS
 
 while IFS= read -r -d '' element; do
     XPATH_ELEMENTS[i++]="$element"
-done < <($XPATH     /DS_DRIVER_ACTION_DATA/DATASTORE/TEMPLATE/CPG \
+done < <($XPATH     /DS_DRIVER_ACTION_DATA/DATASTORE/TEMPLATE/IP \
+                    /DS_DRIVER_ACTION_DATA/DATASTORE/TEMPLATE/CPG \
                     /DS_DRIVER_ACTION_DATA/DATASTORE/TEMPLATE/ID \
                     /DS_DRIVER_ACTION_DATA/DATASTORE/TEMPLATE/NAMING_TYPE \
                     /DS_DRIVER_ACTION_DATA/MONITOR_VM_DISKS)
 
-CPG="${XPATH_ELEMENTS[0]:-$CPG}"
-DSID="${XPATH_ELEMENTS[1]}"
-NAMING_TYPE="${XPATH_ELEMENTS[2]:-$NAMING_TYPE}"
-MONITOR_VM_DISKS="${XPATH_ELEMENTS[3]}"
+IP="${XPATH_ELEMENTS[0]:-$IP}"
+API_ENDPOINT="http://${IP}:8008/api/v1"
+CPG="${XPATH_ELEMENTS[1]:-$CPG}"
+DSID="${XPATH_ELEMENTS[2]}"
+NAMING_TYPE="${XPATH_ELEMENTS[3]:-$NAMING_TYPE}"
+MONITOR_VM_DISKS="${XPATH_ELEMENTS[4]}"
 
 # ------------ Compute datastore usage -------------
 
@@ -86,9 +89,9 @@ VMS=($(echo "${XPATH_ELEMENTS[0]}" | tr " " "\n" | sort | uniq))
 
 for VMID in ${VMS[@]}; do
   VMXML=$(onevm show -x $VMID)
-  
+
   echo -n "VM=[ID=$VMID,POLL=\""
-  
+
   unset i XPATH_ELEMENTS
   while IFS= read -r -d '' element; do
       XPATH_ELEMENTS[i++]="$element"
@@ -97,7 +100,7 @@ for VMID in ${VMS[@]}; do
                       %m%/VM/TEMPLATE/DISK/CLONE \
                       %m%/VM/TEMPLATE/DISK/DISK_ID \
                       %m%/VM/TEMPLATE/DISK/IMAGE_ID )
-                      
+
   SOURCES="${XPATH_ELEMENTS[0]}"
   CLONES=($(echo "${XPATH_ELEMENTS[1]}"))
   DISK_IDS=($(echo "${XPATH_ELEMENTS[2]}"))
@@ -110,7 +113,7 @@ for VMID in ${VMS[@]}; do
     else
       DISK=$(get_vv_name "$SOURCE")
     fi
-    
+
     diskSize=$(python ${DRIVER_PATH}/../../datastore/3par/3par.py getVVSize -a $API_ENDPOINT -i $IP -s $SECURE -u $USERNAME \
                                                                     -p $PASSWORD -n $DISK -t USED)
 
@@ -120,19 +123,19 @@ for VMID in ${VMS[@]}; do
     fi
 
     echo -n "DISK_SIZE=[ID=${DISK_IDS[$k]},SIZE=${diskSize}] "
-    
+
     # snapshots
     unset i XPATH_ELEMENTS
     while IFS= read -r -d '' element; do
         XPATH_ELEMENTS[i++]="$element"
     done < <(echo "$VMXML"| $XPATH \
                         %m%/VM/SNAPSHOTS[DISK_ID=${DISK_IDS[$k]}]/SNAPSHOT/ID )
-                        
+
     SNAPSHOT_IDS="${XPATH_ELEMENTS[0]}"
     if [ "$SNAPSHOT_IDS" ]; then
       for SNAP_ID in $SNAPSHOT_IDS; do
         SNAP="$DISK.$SNAP_ID"
-        
+
         snapSize=$(python ${DRIVER_PATH}/../../datastore/3par/3par.py getVVSize -a $API_ENDPOINT -i $IP -s $SECURE -u $USERNAME \
                                                                         -p $PASSWORD -n $SNAP -t SNAP)
 
@@ -144,10 +147,10 @@ for VMID in ${VMS[@]}; do
         echo -n "SNAPSHOT_SIZE=[ID=${SNAP_ID},DISK_ID=${DISK_IDS[$k]},SIZE=${snapSize}] "
       done
     fi
-        
+
     let "k++"
   done
-  
+
   echo "\"]"
-  
+
 done

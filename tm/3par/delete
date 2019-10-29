@@ -20,7 +20,7 @@
 # -------------------------------------------------------------------------- #
 
 ###############################################################################
-# This script is used to remove the either system datastore’s directory of the VM or a disk itself 
+# This script is used to remove the either system datastore’s directory of the VM or a disk itself
 ###############################################################################
 
 # DELETE <host:remote_system_ds/disk.i|host:remote_system_ds/> vmid dsid
@@ -142,9 +142,12 @@ unset i j XPATH_ELEMENTS
 while IFS= read -r -d '' element; do
   XPATH_ELEMENTS[i++]="$element"
 done < <(onedatastore show -x $DSID | $XPATH \
+                        /DATASTORE/TEMPLATE/IP \
                         /DATASTORE/TEMPLATE/NAMING_TYPE \
                         /DATASTORE/TEMPLATE/QOS_ENABLE)
 
+IP="${XPATH_ELEMENTS[j++]:-$IP}"
+API_ENDPOINT="http://${IP}:8008/api/v1"
 NAMING_TYPE="${XPATH_ELEMENTS[j++]:-$NAMING_TYPE}"
 QOS_ENABLE="${XPATH_ELEMENTS[j++]:-$QOS_ENABLE}"
 
@@ -159,9 +162,11 @@ if [ "$CLONE" == "YES" ] || [ "$DISK_TYPE" == "FILE" ]; then
     while IFS= read -r -d '' element; do
         XPATH_ELEMENTS[i++]="$element"
     done < <(onedatastore show -x $SYS_DSID | $XPATH \
+                                /DATASTORE/TEMPLATE/IP \
                                 /DATASTORE/TEMPLATE/NAMING_TYPE \
                                 /DATASTORE/TEMPLATE/QOS_ENABLE)
-
+    IP="${XPATH_ELEMENTS[j++]:-$IP}"
+    API_ENDPOINT="http://${IP}:8008/api/v1"
     NAMING_TYPE="${XPATH_ELEMENTS[j++]:-$NAMING_TYPE}"
     QOS_ENABLE="${XPATH_ELEMENTS[j++]:-$QOS_ENABLE}"
 
@@ -192,18 +197,18 @@ if [ "$DST_HOST_3PAR" == "1" ]; then
   #-------------------------------------------------------------------------------
   # Unmap non-persistent image from host
   #-------------------------------------------------------------------------------
-  
+
   FLUSH_CMD=$(cat <<EOF
       set -e
       $(remove_lun "$WWN")
 EOF
 )
-  
+
   log "Unmapping $NAME_WWN from $DST_HOST"
-  
+
   ssh_exec_and_log "$DST_HOST" "$FLUSH_CMD" \
       "Error flushing out mapping"
-  
+
   python ${DRIVER_PATH}/../../datastore/3par/3par.py unexportVV -a $API_ENDPOINT -i $IP -s $SECURE -u $USERNAME -p $PASSWORD \
                                                         -n $NAME -hs $DST_HOST
 

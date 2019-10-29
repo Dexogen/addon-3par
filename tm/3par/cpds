@@ -19,7 +19,7 @@
 # -------------------------------------------------------------------------- #
 
 ###############################################################################
-# This script is used to copy an image back to its datastore (executed for the saveas operation) 
+# This script is used to copy an image back to its datastore (executed for the saveas operation)
 ###############################################################################
 
 # mvds host:remote_system_ds/disk.i fe:SOURCE snapid vmid dsid
@@ -60,13 +60,16 @@ DSID=$5
 
 XPATH="${DRIVER_PATH}/../../datastore/xpath.rb --stdin"
 
-unset i XPATH_ELEMENTS
+unset i j XPATH_ELEMENTS
 
 while IFS= read -r -d '' element; do
     XPATH_ELEMENTS[i++]="$element"
-done < <(onedatastore show -x $DSID | $XPATH /DATASTORE/TEMPLATE/CPG)
-
-CPG="${XPATH_ELEMENTS[0]:-$CPG}"
+done < <(onedatastore show -x $DSID| $XPATH \
+                    /DATASTORE/TEMPLATE/IP \
+                    /DATASTORE/TEMPLATE/CPG)
+IP="${XPATH_ELEMENTS[j++]:-$IP}"
+API_ENDPOINT="http://${IP}:8008/api/v1"
+CPG="${XPATH_ELEMENTS[j++]:-$CPG}"
 
 #-------------------------------------------------------------------------------
 # Get Image information
@@ -91,13 +94,16 @@ SYS_DSID="${XPATH_ELEMENTS[2]}"
 # Get system ds information
 #-------------------------------------------------------------------------------
 
-unset i XPATH_ELEMENTS
+unset i j XPATH_ELEMENTS
 
 while IFS= read -r -d '' element; do
     XPATH_ELEMENTS[i++]="$element"
-done < <(onedatastore show -x $SYS_DSID | $XPATH /DATASTORE/TEMPLATE/NAMING_TYPE)
-
-NAMING_TYPE="${XPATH_ELEMENTS[0]:-$NAMING_TYPE}"
+done < <(onedatastore show -x $SYS_DSID | $XPATH \
+                    /DATASTORE/TEMPLATE/IP \
+                    /DATASTORE/TEMPLATE/NAMING_TYPE)
+IP="${XPATH_ELEMENTS[j++]:-$IP}"
+API_ENDPOINT="http://${IP}:8008/api/v1"
+NAMING_TYPE="${XPATH_ELEMENTS[j++]:-$NAMING_TYPE}"
 
 NAME=$(get_vv_name "$DST")
 

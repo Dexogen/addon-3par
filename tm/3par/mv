@@ -20,7 +20,7 @@
 # -------------------------------------------------------------------------- #
 
 ###############################################################################
-# This script is used to move images/directories across system_ds in different hosts. When used for the system datastore the script will received the directory 
+# This script is used to move images/directories across system_ds in different hosts. When used for the system datastore the script will received the directory
 ###############################################################################
 
 # MV <hostA:system_ds/disk.i|hostB:system_ds/disk.i> vmid dsid
@@ -81,20 +81,20 @@ if [ `is_disk $DST_PATH` -eq 0 ]; then
     ssh_make_path "$DST_HOST" "$DST_DIR"
 
     log "Moving $SRC to $DST"
-    
+
     ssh_exec_and_log "$DST_HOST" "rm -rf '$DST_PATH'" \
         "Error removing target path to prevent overwrite errors"
-    
+
     TAR_SSH=$(cat <<EOF
     set -e -o pipefail
-    
+
     $TAR -C $SRC_DS_DIR --sparse -cf - $SRC_VM_DIR | $SSH $DST_HOST '$TAR -C $DST_DIR --sparse -xf -'
     rm -rf $SRC_PATH
 EOF
 )
-    
+
     ssh_exec_and_log "$SRC_HOST" "$TAR_SSH" "Error copying disk directory to target host"
-    
+
     exit 0
 fi
 
@@ -105,6 +105,14 @@ fi
 DISK_ID=$(echo "$DST_PATH" | $AWK -F. '{print $NF}')
 
 XPATH="${DRIVER_PATH}/../../datastore/xpath.rb --stdin"
+
+unset i XPATH_ELEMENTS
+
+while IFS= read -r -d '' element; do
+    XPATH_ELEMENTS[i++]="$element"
+done < <(onedatastore show -x $DSID| $XPATH /DATASTORE/TEMPLATE/IP)
+IP="${XPATH_ELEMENTS[0]}"
+API_ENDPOINT="http://${IP}:8008/api/v1"
 
 unset i XPATH_ELEMENTS
 
@@ -128,15 +136,15 @@ if [ "$CLONE" == "YES" ]; then
   #-------------------------------------------------------------------------------
   # Get system ds information
   #-------------------------------------------------------------------------------
-  
+
   unset i XPATH_ELEMENTS
-  
+
   while IFS= read -r -d '' element; do
       XPATH_ELEMENTS[i++]="$element"
   done < <(onedatastore show -x $SYS_DSID | $XPATH /DATASTORE/TEMPLATE/NAMING_TYPE)
-  
+
   NAMING_TYPE="${XPATH_ELEMENTS[0]:-$NAMING_TYPE}"
-  
+
   # get VM disk WWN
   NAME_WWN=$(python ${DRIVER_PATH}/../../datastore/3par/3par.py getVmClone -a $API_ENDPOINT -i $IP -s $SECURE -u $USERNAME \
                                                                 -p $PASSWORD -nt $NAMING_TYPE -vi $VMID -id $DISK_ID)
@@ -217,7 +225,7 @@ if [ "$DST_HOST_3PAR" == "1" ]; then
       error_message "$LUN"
       exit 1
     fi
-    
+
     DISCOVER_CMD=$(cat <<EOF
         set -e
         mkdir -p "$DST_DIR"
@@ -225,7 +233,7 @@ if [ "$DST_HOST_3PAR" == "1" ]; then
         ln -sf "\$DEV" "$DST_PATH"
 EOF
 )
-    
+
     ssh_exec_and_log "$DST_HOST" "$DISCOVER_CMD" \
         "Error registering $NAME_WWN to $DST_HOST"
 fi

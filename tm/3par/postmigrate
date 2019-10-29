@@ -99,6 +99,15 @@ for j in `seq 1 ${#DISK_IDS[*]}`; do
     DISK_ID=${XPATH_ELEMENTS[k++]}
     SYS_DSID=${XPATH_ELEMENTS[k++]}
 
+    unset i j XPATH_ELEMENTS
+
+    while IFS= read -r -d '' element; do
+        XPATH_ELEMENTS[i++]="$element"
+    done < <(onedatastore show -x $SYS_DSID | $XPATH /DATASTORE/TEMPLATE/IP)
+
+    IP="${XPATH_ELEMENTS[j++]:-$IP}"
+    API_ENDPOINT="http://${IP}:8008/api/v1"
+
     # Readonly and not clone, so this disk can be used by more VMs at the same time
     if [ "$CLONE" == "NO" ] && [ "$READONLY" == "YES" ]; then
         # check if disk is in use by other VMs
