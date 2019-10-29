@@ -138,7 +138,7 @@ chown -R oneadmin.oneadmin /var/lib/one/remotes/tm/3par
 ```
 
 ### Addon configuration
-The global configuration of one-addon-3par is in `/var/lib/one/remotes/etc/datastore/3par/3par.conf` file.
+The global configuration of one-addon-3par is in `/var/lib/one/remotes/etc/datastore/3par/3par.conf` file. In experimental mode, support for multiple storage has been added. The IP address is now set by the template, and API_ENDPOINT is automatically generated.
 
 
 * Edit `/etc/one/oned.conf` and add `3par` to the `TM_MAD` arguments
